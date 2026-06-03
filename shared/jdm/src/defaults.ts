@@ -25,7 +25,7 @@ export function defaultContentForType(type: NodeType): Record<string, unknown> {
       return { expressions: [] };
     case 'functionNode':
       return {
-        source: `/**\n * @param {input} input\n */\nconst handler = (input) => {\n  return input;\n};\n`,
+        source: `/**\n * @param {input} input\n */\nexport const handler = async (input) => {\n  return input;\n};\n`,
       };
     case 'switchNode':
       return { hitPolicy: 'first', conditions: [] };

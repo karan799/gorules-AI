@@ -7,7 +7,7 @@ import { useEditorStore } from '../store/editor.store';
 const { Text } = Typography;
 
 const DEFAULT_REQUEST = `{
-  "input": "hello"
+  "amount": 150
 }`;
 
 export function SimulatorPanel() {

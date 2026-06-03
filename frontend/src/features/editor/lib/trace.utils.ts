@@ -56,6 +56,19 @@ export function getNodeTraceEntries(trace: unknown): NodeTraceEntry[] {
     for (const [key, val] of Object.entries(root.nodes as Record<string, unknown>)) {
       push(key, val && typeof val === 'object' ? (val as Record<string, unknown>) : {});
     }
+    return entries;
+  }
+
+  // Zen Engine trace: { [nodeId]: { id, name, input, output, traceData } }
+  for (const [key, val] of Object.entries(root)) {
+    if (key === 'trace' || key === 'nodes' || key === 'performance') continue;
+    if (val && typeof val === 'object') {
+      const e = val as Record<string, unknown>;
+      const nodeId = resolveNodeId(e) ?? key;
+      if (typeof e.id === 'string' || typeof e.name === 'string' || e.input !== undefined || e.output !== undefined) {
+        push(nodeId, e);
+      }
+    }
   }
 
   return entries;
@@ -69,6 +82,23 @@ export function isNodeTraced(nodeId: string, trace: unknown): boolean {
   return getTracedNodeIds(trace).has(nodeId);
 }
 
+/** True when the node actually ran (not just present as a trace stub) */
+export function isNodeExecuted(nodeId: string, trace: unknown): boolean {
+  const entry = getNodeTrace(nodeId, trace);
+  if (!entry) return false;
+  if (entry.traceData && Object.keys(entry.traceData).length > 0) return true;
+  if (entry.output !== null && entry.output !== undefined) return true;
+  return false;
+}
+
+export function getExecutedNodeIds(trace: unknown): Set<string> {
+  return new Set(
+    getNodeTraceEntries(trace)
+      .filter((e) => isNodeExecuted(e.nodeId, trace))
+      .map((e) => e.nodeId),
+  );
+}
+
 export function getNodeTrace(nodeId: string, trace: unknown): NodeTraceEntry | undefined {
   return getNodeTraceEntries(trace).find((e) => e.nodeId === nodeId);
 }
@@ -78,6 +108,11 @@ export function getActiveRuleIds(nodeId: string, trace: unknown): string[] {
   if (!entry) return [];
 
   const ids: string[] = [];
+  const ruleMeta = entry.traceData?.rule as Record<string, unknown> | undefined;
+  if (ruleMeta && typeof ruleMeta._id === 'string') {
+    ids.push(ruleMeta._id);
+  }
+
   const sources = [
     entry.traceData?.activeRules,
     entry.traceData?.matchedRules,

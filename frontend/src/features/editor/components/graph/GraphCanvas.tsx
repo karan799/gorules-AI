@@ -24,7 +24,7 @@ import {
   type NodeType,
 } from '@gorules-editor/shared-jdm';
 import { useEditorStore } from '../../store/editor.store';
-import { getTracedNodeIds } from '../../lib/trace.utils';
+import { getExecutedNodeIds, getTracedNodeIds } from '../../lib/trace.utils';
 import { DecisionGraphNode, type GraphNodeData } from './DecisionGraphNode';
 
 const nodeTypes = { decisionNode: DecisionGraphNode };
@@ -54,6 +54,7 @@ function GraphCanvasInner() {
   const selectedNodeId = useEditorStore((s) => s.selectedNodeId);
   const setSelectedNodeId = useEditorStore((s) => s.setSelectedNodeId);
   const trace = useEditorStore((s) => s.simulation?.trace);
+  const executedIds = useMemo(() => getExecutedNodeIds(trace), [trace]);
   const tracedIds = useMemo(() => getTracedNodeIds(trace), [trace]);
   const { screenToFlowPosition } = useReactFlow();
 
@@ -133,17 +134,19 @@ function GraphCanvasInner() {
           ...n,
           selected: n.id === selectedNodeId,
           className: hasTrace
-            ? tracedIds.has(n.id)
+            ? executedIds.has(n.id)
               ? 'trace-hit'
-              : 'trace-skip'
+              : tracedIds.has(n.id)
+                ? 'trace-skip'
+                : undefined
             : undefined,
         }))}
         edges={edges.map((e) => ({
           ...e,
           className:
-            tracedIds.has(e.source) && tracedIds.has(e.target) ? 'trace-hit' : undefined,
+            executedIds.has(e.source) && executedIds.has(e.target) ? 'trace-hit' : undefined,
           style:
-            tracedIds.has(e.source) && tracedIds.has(e.target)
+            executedIds.has(e.source) && executedIds.has(e.target)
               ? { stroke: '#22c55e', strokeWidth: 2.5 }
               : undefined,
         }))}

@@ -2,7 +2,7 @@ import { Handle, Position, type NodeProps } from '@xyflow/react';
 import { Tooltip } from 'antd';
 import type { NodeType } from '@gorules-editor/shared-jdm';
 import { useEditorStore } from '../../store/editor.store';
-import { getNodeTrace, isNodeTraced } from '../../lib/trace.utils';
+import { getNodeTrace, isNodeExecuted } from '../../lib/trace.utils';
 
 export interface GraphNodeData {
   label: string;
@@ -23,7 +23,7 @@ const TYPE_LABELS: Record<NodeType, string> = {
 export function DecisionGraphNode({ data, selected }: NodeProps) {
   const d = data as unknown as GraphNodeData;
   const trace = useEditorStore((s) => s.simulation?.trace);
-  const traced = isNodeTraced(d.jdmNodeId, trace);
+  const traced = isNodeExecuted(d.jdmNodeId, trace);
   const entry = getNodeTrace(d.jdmNodeId, trace);
 
   const className = [

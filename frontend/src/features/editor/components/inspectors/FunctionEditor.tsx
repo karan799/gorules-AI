@@ -6,9 +6,8 @@ import { NodeTracePanel } from './NodeTracePanel';
 
 const DEFAULT_SOURCE = `/**
  * @param {input} input
- * @returns {output}
  */
-const handler = (input) => {
+export const handler = async (input) => {
   return input;
 };
 `;
