@@ -26,3 +26,14 @@ export function updateExpression(
     expressions: content.expressions.map((e) => (e.id === id ? { ...e, ...patch } : e)),
   };
 }
+
+export function reorderExpressions(
+  content: ExpressionContent,
+  fromIndex: number,
+  toIndex: number,
+): ExpressionContent {
+  const expressions = [...content.expressions];
+  const [item] = expressions.splice(fromIndex, 1);
+  expressions.splice(toIndex, 0, item);
+  return { expressions };
+}

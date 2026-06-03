@@ -1,12 +1,13 @@
 import { Button, Input, Space, Typography, Popconfirm } from 'antd';
 import { ZenCodeEditor } from '@/shared/components/ZenCodeEditor';
-import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
 import type { ExpressionContent } from '@gorules-editor/shared-jdm';
 import {
   normalizeExpressionContent,
   addExpression,
   removeExpression,
   updateExpression,
+  reorderExpressions,
 } from '../../lib/expression.utils';
 
 const { Text } = Typography;
@@ -50,6 +51,20 @@ export function ExpressionEditor({ content, onChange }: ExpressionEditorProps) {
             <Text type="secondary" style={{ fontSize: 11 }}>
               #{index + 1}
             </Text>
+            <Button
+              type="text"
+              size="small"
+              icon={<ArrowUpOutlined />}
+              disabled={index === 0}
+              onClick={() => setData(reorderExpressions(data, index, index - 1))}
+            />
+            <Button
+              type="text"
+              size="small"
+              icon={<ArrowDownOutlined />}
+              disabled={index === data.expressions.length - 1}
+              onClick={() => setData(reorderExpressions(data, index, index + 1))}
+            />
             <Input
               size="small"
               placeholder="Output key (e.g. customer.fullName)"

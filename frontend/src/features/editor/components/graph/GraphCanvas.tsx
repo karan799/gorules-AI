@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, type DragEvent } from 'react';
 import {
   ReactFlow,
   Background,
@@ -7,6 +7,8 @@ import {
   addEdge,
   useNodesState,
   useEdgesState,
+  ReactFlowProvider,
+  useReactFlow,
   type Connection,
   type Node,
   type Edge,
@@ -17,13 +19,17 @@ import {
   connectNodes,
   disconnectEdge,
   updateNode,
+  addNode,
   type DecisionGraph,
+  type NodeType,
 } from '@gorules-editor/shared-jdm';
 import { useEditorStore } from '../../store/editor.store';
 import { getTracedNodeIds } from '../../lib/trace.utils';
 import { DecisionGraphNode, type GraphNodeData } from './DecisionGraphNode';
 
 const nodeTypes = { decisionNode: DecisionGraphNode };
+
+const DRAG_TYPE = 'application/gorules-node-type';
 
 function graphToFlow(graph: DecisionGraph): { nodes: Node[]; edges: Edge[] } {
   const nodes: Node[] = graph.nodes.map((n) => ({
@@ -42,13 +48,14 @@ function graphToFlow(graph: DecisionGraph): { nodes: Node[]; edges: Edge[] } {
   return { nodes, edges };
 }
 
-export function GraphCanvas() {
+function GraphCanvasInner() {
   const graph = useEditorStore((s) => s.graph);
   const setGraph = useEditorStore((s) => s.setGraph);
   const selectedNodeId = useEditorStore((s) => s.selectedNodeId);
   const setSelectedNodeId = useEditorStore((s) => s.setSelectedNodeId);
   const trace = useEditorStore((s) => s.simulation?.trace);
   const tracedIds = useMemo(() => getTracedNodeIds(trace), [trace]);
+  const { screenToFlowPosition } = useReactFlow();
 
   const flow = useMemo(() => graphToFlow(graph), [graph]);
   const [nodes, setNodes, onNodesChange] = useNodesState(flow.nodes);
@@ -59,6 +66,22 @@ export function GraphCanvas() {
     setNodes(next.nodes);
     setEdges(next.edges);
   }, [graph, setNodes, setEdges]);
+
+  const onDragOver = useCallback((e: DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const onDrop = useCallback(
+    (e: DragEvent) => {
+      e.preventDefault();
+      const nodeType = e.dataTransfer.getData(DRAG_TYPE) as NodeType;
+      if (!nodeType) return;
+      const position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+      setGraph(addNode(graph, nodeType, position));
+    },
+    [graph, setGraph, screenToFlowPosition],
+  );
 
   const onConnect = useCallback(
     (connection: Connection) => {
@@ -101,10 +124,20 @@ export function GraphCanvas() {
     [graph, setGraph],
   );
 
+  const hasTrace = Boolean(trace);
+
   return (
-    <div className="graph-canvas">
+    <div className="graph-canvas" onDragOver={onDragOver} onDrop={onDrop}>
       <ReactFlow
-        nodes={nodes.map((n) => ({ ...n, selected: n.id === selectedNodeId }))}
+        nodes={nodes.map((n) => ({
+          ...n,
+          selected: n.id === selectedNodeId,
+          className: hasTrace
+            ? tracedIds.has(n.id)
+              ? 'trace-hit'
+              : 'trace-skip'
+            : undefined,
+        }))}
         edges={edges.map((e) => ({
           ...e,
           className:
@@ -131,3 +164,13 @@ export function GraphCanvas() {
     </div>
   );
 }
+
+export function GraphCanvas() {
+  return (
+    <ReactFlowProvider>
+      <GraphCanvasInner />
+    </ReactFlowProvider>
+  );
+}
+
+export { DRAG_TYPE };

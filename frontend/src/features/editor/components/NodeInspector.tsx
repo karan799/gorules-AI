@@ -7,6 +7,8 @@ import { ExpressionEditor } from './inspectors/ExpressionEditor';
 import { FunctionEditor } from './inspectors/FunctionEditor';
 import { SwitchEditor } from './inspectors/SwitchEditor';
 import { InputNodeEditor } from './inspectors/InputNodeEditor';
+import { DecisionNodeEditor } from './inspectors/DecisionNodeEditor';
+import { NodeTracePanel } from './inspectors/NodeTracePanel';
 import { NodeContentInspector } from './inspectors/NodeContentInspector';
 
 const { Text } = Typography;
@@ -57,6 +59,11 @@ export function NodeInspector() {
             label: getEditorTabLabel(node.type),
             children: editorTab,
           },
+          {
+            key: 'trace',
+            label: 'Trace',
+            children: <NodeTracePanel nodeId={node.id} />,
+          },
         ]}
       />
     </div>
@@ -73,6 +80,8 @@ function getEditorTabLabel(type: DecisionNode['type']): string {
       return 'Function';
     case 'switchNode':
       return 'Switch';
+    case 'decisionNode':
+      return 'Decision';
     default:
       return 'Content';
   }
@@ -84,15 +93,25 @@ function getEditorForNode(
 ) {
   switch (node.type) {
     case 'decisionTableNode':
-      return <DecisionTableEditor content={node.content} onChange={onContentChange} />;
+      return (
+        <DecisionTableEditor
+          nodeId={node.id}
+          content={node.content}
+          onChange={onContentChange}
+        />
+      );
     case 'expressionNode':
       return <ExpressionEditor content={node.content} onChange={onContentChange} />;
     case 'functionNode':
-      return <FunctionEditor content={node.content} onChange={onContentChange} />;
+      return (
+        <FunctionEditor nodeId={node.id} content={node.content} onChange={onContentChange} />
+      );
     case 'switchNode':
       return <SwitchEditor content={node.content} onChange={onContentChange} />;
     case 'inputNode':
       return <InputNodeEditor content={node.content} onChange={onContentChange} />;
+    case 'decisionNode':
+      return <DecisionNodeEditor content={node.content} onChange={onContentChange} />;
     default:
       return (
         <NodeContentInspector
