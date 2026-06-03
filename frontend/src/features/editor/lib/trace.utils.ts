@@ -1,51 +1,107 @@
-/** Extract node IDs that were executed during simulation from Zen Engine trace payloads */
-
-export function getTracedNodeIds(trace: unknown): Set<string> {
-  const ids = new Set<string>();
-  if (!trace) return ids;
-
-  if (Array.isArray(trace)) {
-    for (const entry of trace) {
-      collectNodeId(entry, ids);
-    }
-    return ids;
-  }
-
-  if (typeof trace === 'object') {
-    const obj = trace as Record<string, unknown>;
-
-    if (Array.isArray(obj.nodes)) {
-      for (const entry of obj.nodes) collectNodeId(entry, ids);
-    }
-
-    if (obj.nodes && typeof obj.nodes === 'object' && !Array.isArray(obj.nodes)) {
-      for (const key of Object.keys(obj.nodes as object)) {
-        ids.add(key);
-      }
-    }
-
-    if (Array.isArray(obj.trace)) {
-      return getTracedNodeIds(obj.trace);
-    }
-
-    collectNodeId(obj, ids);
-  }
-
-  return ids;
+export interface NodeTraceEntry {
+  nodeId: string;
+  name?: string;
+  input?: unknown;
+  output?: unknown;
+  performance?: unknown;
+  traceData?: Record<string, unknown>;
 }
 
-function collectNodeId(entry: unknown, ids: Set<string>): void {
-  if (!entry || typeof entry !== 'object') return;
-  const e = entry as Record<string, unknown>;
-  const id =
-    (typeof e.nodeId === 'string' && e.nodeId) ||
-    (typeof e.id === 'string' && e.id) ||
-    (typeof e.node_id === 'string' && e.node_id) ||
-    (typeof e.name === 'string' && e.name);
+export function getNodeTraceEntries(trace: unknown): NodeTraceEntry[] {
+  if (!trace) return [];
 
-  if (id) ids.add(id);
+  const entries: NodeTraceEntry[] = [];
+  const seen = new Set<string>();
+
+  const push = (nodeId: string, data: Record<string, unknown>) => {
+    if (!nodeId || seen.has(nodeId)) return;
+    seen.add(nodeId);
+    entries.push({
+      nodeId,
+      name: typeof data.name === 'string' ? data.name : undefined,
+      input: data.input,
+      output: data.output,
+      performance: data.performance,
+      traceData: (data.traceData ?? data) as Record<string, unknown>,
+    });
+  };
+
+  if (Array.isArray(trace)) {
+    for (const item of trace) {
+      if (item && typeof item === 'object') {
+        const e = item as Record<string, unknown>;
+        const nodeId = resolveNodeId(e);
+        if (nodeId) push(nodeId, e);
+      }
+    }
+    return entries;
+  }
+
+  if (typeof trace !== 'object') return entries;
+  const root = trace as Record<string, unknown>;
+
+  if (Array.isArray(root.trace)) return getNodeTraceEntries(root.trace);
+
+  if (Array.isArray(root.nodes)) {
+    for (const item of root.nodes) {
+      if (item && typeof item === 'object') {
+        const e = item as Record<string, unknown>;
+        const nodeId = resolveNodeId(e);
+        if (nodeId) push(nodeId, e);
+      }
+    }
+  }
+
+  if (root.nodes && typeof root.nodes === 'object' && !Array.isArray(root.nodes)) {
+    for (const [key, val] of Object.entries(root.nodes as Record<string, unknown>)) {
+      push(key, val && typeof val === 'object' ? (val as Record<string, unknown>) : {});
+    }
+  }
+
+  return entries;
+}
+
+export function getTracedNodeIds(trace: unknown): Set<string> {
+  return new Set(getNodeTraceEntries(trace).map((e) => e.nodeId));
 }
 
 export function isNodeTraced(nodeId: string, trace: unknown): boolean {
   return getTracedNodeIds(trace).has(nodeId);
+}
+
+export function getNodeTrace(nodeId: string, trace: unknown): NodeTraceEntry | undefined {
+  return getNodeTraceEntries(trace).find((e) => e.nodeId === nodeId);
+}
+
+export function getActiveRuleIds(nodeId: string, trace: unknown): string[] {
+  const entry = getNodeTrace(nodeId, trace);
+  if (!entry) return [];
+
+  const ids: string[] = [];
+  const sources = [
+    entry.traceData?.activeRules,
+    entry.traceData?.matchedRules,
+    (entry.output as Record<string, unknown> | undefined)?.activeRules,
+    entry.traceData?.table &&
+      (entry.traceData.table as Record<string, unknown>).rules,
+  ];
+
+  for (const c of sources) {
+    if (!Array.isArray(c)) continue;
+    for (const r of c) {
+      if (typeof r === 'string') ids.push(r);
+      else if (r && typeof r === 'object' && typeof (r as { _id?: string })._id === 'string') {
+        ids.push((r as { _id: string })._id);
+      }
+    }
+  }
+
+  return [...new Set(ids)];
+}
+
+function resolveNodeId(e: Record<string, unknown>): string | undefined {
+  if (typeof e.nodeId === 'string' && e.nodeId) return e.nodeId;
+  if (typeof e.id === 'string' && e.id) return e.id;
+  if (typeof e.node_id === 'string' && e.node_id) return e.node_id;
+  return undefined;
 }

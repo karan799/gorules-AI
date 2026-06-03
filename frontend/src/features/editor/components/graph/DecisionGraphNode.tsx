@@ -1,7 +1,8 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react';
+import { Tooltip } from 'antd';
 import type { NodeType } from '@gorules-editor/shared-jdm';
 import { useEditorStore } from '../../store/editor.store';
-import { isNodeTraced } from '../../lib/trace.utils';
+import { getNodeTrace, isNodeTraced } from '../../lib/trace.utils';
 
 export interface GraphNodeData {
   label: string;
@@ -23,6 +24,7 @@ export function DecisionGraphNode({ data, selected }: NodeProps) {
   const d = data as unknown as GraphNodeData;
   const trace = useEditorStore((s) => s.simulation?.trace);
   const traced = isNodeTraced(d.jdmNodeId, trace);
+  const entry = getNodeTrace(d.jdmNodeId, trace);
 
   const className = [
     'graph-node',
@@ -33,7 +35,13 @@ export function DecisionGraphNode({ data, selected }: NodeProps) {
     .filter(Boolean)
     .join(' ');
 
-  return (
+  const tooltipTitle = entry
+    ? `Executed\nOutput: ${JSON.stringify(entry.output)?.slice(0, 80) ?? '—'}`
+    : trace
+      ? 'Not executed'
+      : undefined;
+
+  const body = (
     <div className={className}>
       {d.nodeType !== 'inputNode' && (
         <Handle type="target" position={Position.Left} style={{ background: '#6366f1' }} />
@@ -46,4 +54,6 @@ export function DecisionGraphNode({ data, selected }: NodeProps) {
       )}
     </div>
   );
+
+  return tooltipTitle ? <Tooltip title={tooltipTitle}>{body}</Tooltip> : body;
 }
