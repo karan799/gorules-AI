@@ -10,7 +10,7 @@ import { useEditorStore } from '../store/editor.store';
 const { Text } = Typography;
 
 export function EditorToolbar() {
-  const document = useEditorStore((s) => s.document);
+  const docMeta = useEditorStore((s) => s.document);
   const graph = useEditorStore((s) => s.graph);
   const dirty = useEditorStore((s) => s.dirty);
   const setDocumentName = useEditorStore((s) => s.setDocumentName);
@@ -21,7 +21,7 @@ export function EditorToolbar() {
   const downloadJson = (fileName: string) => {
     const blob = new Blob([JSON.stringify(graph, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = window.document.createElement('a');
     a.href = url;
     a.download = fileName;
     a.click();
@@ -58,13 +58,13 @@ export function EditorToolbar() {
         <Button
           icon={<SaveOutlined />}
           type="primary"
-          onClick={() => downloadJson(document.fileName)}
+          onClick={() => downloadJson(docMeta.fileName)}
         >
           Save
         </Button>
         <Button
           onClick={() => {
-            const name = window.prompt('Save as', document.fileName);
+            const name = window.prompt('Save as', docMeta.fileName);
             if (name) downloadJson(name.endsWith('.json') ? name : `${name}.json`);
           }}
         >
@@ -74,7 +74,7 @@ export function EditorToolbar() {
       <Space>
         <Input
           variant="borderless"
-          value={document.name}
+          value={docMeta.name}
           onChange={(e) => setDocumentName(e.target.value)}
           style={{ maxWidth: 280, fontWeight: 600, textAlign: 'center' }}
         />

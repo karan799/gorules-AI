@@ -19,7 +19,7 @@ const TYPE_LABELS: Record<NodeType, string> = {
 };
 
 export function DecisionGraphNode({ data, selected }: NodeProps) {
-  const d = data as GraphNodeData;
+  const d = data as unknown as GraphNodeData;
   const trace = useEditorStore((s) => s.simulation?.trace);
   const hasTrace = Boolean(trace);
 
