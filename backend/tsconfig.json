@@ -1,0 +1,13 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "paths": {
+      "@gorules-editor/shared-jdm": ["../shared/jdm/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*"]
+}
