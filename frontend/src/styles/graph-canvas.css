@@ -29,6 +29,23 @@
   background: #f0fdf4;
 }
 
+.graph-node.trace-skip {
+  opacity: 0.55;
+}
+
+.graph-node-trace-badge {
+  font-size: 9px;
+  color: #16a34a;
+  font-weight: 600;
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+
+.react-flow__edge.trace-hit path {
+  stroke: #22c55e !important;
+  stroke-width: 2.5px !important;
+}
+
 .graph-node .graph-node-type {
   font-size: 10px;
   color: #6b7280;

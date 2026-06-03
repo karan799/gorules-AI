@@ -1,6 +1,7 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import type { NodeType } from '@gorules-editor/shared-jdm';
 import { useEditorStore } from '../../store/editor.store';
+import { isNodeTraced } from '../../lib/trace.utils';
 
 export interface GraphNodeData {
   label: string;
@@ -21,15 +22,25 @@ const TYPE_LABELS: Record<NodeType, string> = {
 export function DecisionGraphNode({ data, selected }: NodeProps) {
   const d = data as unknown as GraphNodeData;
   const trace = useEditorStore((s) => s.simulation?.trace);
-  const hasTrace = Boolean(trace);
+  const traced = isNodeTraced(d.jdmNodeId, trace);
+
+  const className = [
+    'graph-node',
+    selected && 'selected',
+    traced && 'trace-hit',
+    trace && !traced && 'trace-skip',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
-    <div className={`graph-node ${selected ? 'selected' : ''} ${hasTrace ? 'trace-hit' : ''}`}>
+    <div className={className}>
       {d.nodeType !== 'inputNode' && (
         <Handle type="target" position={Position.Left} style={{ background: '#6366f1' }} />
       )}
       <div className="graph-node-type">{TYPE_LABELS[d.nodeType]}</div>
       <div className="graph-node-name">{d.label}</div>
+      {traced && <div className="graph-node-trace-badge">executed</div>}
       {d.nodeType !== 'outputNode' && (
         <Handle type="source" position={Position.Right} style={{ background: '#6366f1' }} />
       )}

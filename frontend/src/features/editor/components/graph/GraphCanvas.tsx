@@ -20,6 +20,7 @@ import {
   type DecisionGraph,
 } from '@gorules-editor/shared-jdm';
 import { useEditorStore } from '../../store/editor.store';
+import { getTracedNodeIds } from '../../lib/trace.utils';
 import { DecisionGraphNode, type GraphNodeData } from './DecisionGraphNode';
 
 const nodeTypes = { decisionNode: DecisionGraphNode };
@@ -46,6 +47,8 @@ export function GraphCanvas() {
   const setGraph = useEditorStore((s) => s.setGraph);
   const selectedNodeId = useEditorStore((s) => s.selectedNodeId);
   const setSelectedNodeId = useEditorStore((s) => s.setSelectedNodeId);
+  const trace = useEditorStore((s) => s.simulation?.trace);
+  const tracedIds = useMemo(() => getTracedNodeIds(trace), [trace]);
 
   const flow = useMemo(() => graphToFlow(graph), [graph]);
   const [nodes, setNodes, onNodesChange] = useNodesState(flow.nodes);
@@ -102,7 +105,15 @@ export function GraphCanvas() {
     <div className="graph-canvas">
       <ReactFlow
         nodes={nodes.map((n) => ({ ...n, selected: n.id === selectedNodeId }))}
-        edges={edges}
+        edges={edges.map((e) => ({
+          ...e,
+          className:
+            tracedIds.has(e.source) && tracedIds.has(e.target) ? 'trace-hit' : undefined,
+          style:
+            tracedIds.has(e.source) && tracedIds.has(e.target)
+              ? { stroke: '#22c55e', strokeWidth: 2.5 }
+              : undefined,
+        }))}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
