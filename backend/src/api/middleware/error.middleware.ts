@@ -15,8 +15,18 @@ export function errorMiddleware(
     return;
   }
 
-  const message = err instanceof Error ? err.message : 'Internal server error';
-  const status = message.includes('not found') ? 404 : 500;
+  let message = err instanceof Error ? err.message : 'Internal server error';
+  let status = message.includes('not found') ? 404 : 500;
+
+  try {
+    const parsed = JSON.parse(message) as { type?: string; source?: string };
+    if (parsed.source) {
+      message = parsed.source;
+      status = 400;
+    }
+  } catch {
+    /* not JSON — use raw message */
+  }
 
   console.error('[api]', err);
   res.status(status).json({ error: message });
