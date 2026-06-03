@@ -4,7 +4,7 @@
 
 | Branch | Purpose |
 |--------|---------|
-| **`main`** | Fully integrated editor — all phases merged and working together |
+| **`main`** | Fully integrated editor — all phases complete and working |
 
 ```bash
 git checkout main
@@ -12,42 +12,33 @@ npm install
 npm run dev
 ```
 
-## Phase branches (isolated milestones)
+## Phase milestone branches (frozen snapshots)
 
-Each phase branch contains **only work up to that phase**. Use them for focused review or learning the incremental build.
+Historical checkpoints for review. **New work merges into `main` only.**
 
-| Branch | Phase | Includes |
-|--------|-------|----------|
-| `phase/1-decision-table` | Spreadsheet decision table inspector | Base app + table editor |
-| `phase/2-inspectors` | Expression, Function (Monaco), Switch | Phase 1 + node inspectors |
-| `phase/3-trace-overlay` | Simulation trace on graph | Phase 2 + trace highlighting |
-| `phase/4-zen-wasm` | Browser WASM for expressions | Phase 3 + zen-engine-wasm + CodeMirror |
+| Branch | Milestone |
+|--------|-----------|
+| `phase/1-decision-table` | Initial spreadsheet table |
+| `phase/2-inspectors` | Expression / Switch / Monaco Function |
+| `phase/3-trace-overlay` | Graph trace highlighting |
+| `phase/4-zen-wasm` | WASM load + CodeMirror |
 
-## Workflow
+Completion tags (optional): `v0.1-phase1-complete` … on `main` after polish merges.
 
-```bash
-# Work on a single phase in isolation
-git checkout phase/2-inspectors
-npm install
-npm run dev
-
-# Return to full product
-git checkout main
-```
-
-## Merging phases into main
-
-Phases were developed sequentially and integrated on `main`. To add a new phase:
+## Completing a new phase (workflow)
 
 ```bash
-git checkout -b phase/5-my-feature main
-# ... implement ...
 git checkout main
-git merge phase/5-my-feature
+git pull origin main
+git checkout -b feature/phase-N-polish
+# implement, commit, push
+git checkout main
+git merge feature/phase-N-polish
+git push origin main
 ```
 
 ## Commit convention
 
-- `feat(scope):` — new capability
-- `fix(scope):` — bug fix
-- `chore:` — tooling, deps, docs
+- `feat(frontend):` — new capability
+- `fix(frontend):` — bug fix
+- `docs:` — documentation
