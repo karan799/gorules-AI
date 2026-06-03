@@ -3,6 +3,10 @@ import type { DecisionNode } from '@gorules-editor/shared-jdm';
 import { updateNode } from '@gorules-editor/shared-jdm';
 import { useEditorStore } from '../store/editor.store';
 import { DecisionTableEditor } from './inspectors/DecisionTableEditor';
+import { ExpressionEditor } from './inspectors/ExpressionEditor';
+import { FunctionEditor } from './inspectors/FunctionEditor';
+import { SwitchEditor } from './inspectors/SwitchEditor';
+import { InputNodeEditor } from './inspectors/InputNodeEditor';
 import { NodeContentInspector } from './inspectors/NodeContentInspector';
 
 const { Text } = Typography;
@@ -80,12 +84,15 @@ function getEditorForNode(
 ) {
   switch (node.type) {
     case 'decisionTableNode':
-      return (
-        <DecisionTableEditor
-          content={node.content}
-          onChange={onContentChange}
-        />
-      );
+      return <DecisionTableEditor content={node.content} onChange={onContentChange} />;
+    case 'expressionNode':
+      return <ExpressionEditor content={node.content} onChange={onContentChange} />;
+    case 'functionNode':
+      return <FunctionEditor content={node.content} onChange={onContentChange} />;
+    case 'switchNode':
+      return <SwitchEditor content={node.content} onChange={onContentChange} />;
+    case 'inputNode':
+      return <InputNodeEditor content={node.content} onChange={onContentChange} />;
     default:
       return (
         <NodeContentInspector
