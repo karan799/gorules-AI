@@ -14,6 +14,7 @@ import {
   DeleteOutlined,
 } from '@ant-design/icons';
 import type { DecisionTableContent } from '@gorules-editor/shared-jdm';
+import { ZenCodeEditor } from '@/shared/components/ZenCodeEditor';
 import {
   normalizeTableContent,
   addInputColumn,
@@ -73,14 +74,11 @@ export function DecisionTableEditor({ content, onChange }: DecisionTableEditorPr
       key: col.id,
       width: 160,
       render: (_: string, record: { _id: string }) => (
-        <Input
-          size="small"
-          variant="borderless"
-          placeholder="Condition"
+        <ZenCodeEditor
           value={(record as Record<string, string>)[col.id] ?? ''}
-          onChange={(e) =>
-            setTable(updateRuleCell(table, record._id, col.id, e.target.value))
-          }
+          placeholder="Condition"
+          minHeight={36}
+          onChange={(v) => setTable(updateRuleCell(table, record._id, col.id, v))}
         />
       ),
     }));
@@ -100,14 +98,11 @@ export function DecisionTableEditor({ content, onChange }: DecisionTableEditorPr
       key: col.id,
       width: 160,
       render: (_: string, record: { _id: string }) => (
-        <Input
-          size="small"
-          variant="borderless"
-          placeholder="Output"
+        <ZenCodeEditor
           value={(record as Record<string, string>)[col.id] ?? ''}
-          onChange={(e) =>
-            setTable(updateRuleCell(table, record._id, col.id, e.target.value))
-          }
+          placeholder="Output"
+          minHeight={36}
+          onChange={(v) => setTable(updateRuleCell(table, record._id, col.id, v))}
         />
       ),
     }));
