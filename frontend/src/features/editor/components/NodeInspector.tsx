@@ -2,6 +2,8 @@ import { Tabs, Input, Typography, Empty } from 'antd';
 import type { DecisionNode } from '@gorules-editor/shared-jdm';
 import { updateNode } from '@gorules-editor/shared-jdm';
 import { useEditorStore } from '../store/editor.store';
+import { DecisionTableEditor } from './inspectors/DecisionTableEditor';
+import { NodeContentInspector } from './inspectors/NodeContentInspector';
 
 const { Text } = Typography;
 
@@ -24,8 +26,10 @@ export function NodeInspector() {
     setGraph(updateNode(graph, node.id, patch));
   };
 
+  const editorTab = getEditorForNode(node, (content) => update({ content }));
+
   return (
-    <div style={{ padding: 16 }}>
+    <div style={{ padding: 16, height: '100%', overflow: 'auto' }}>
       <Tabs
         items={[
           {
@@ -45,26 +49,50 @@ export function NodeInspector() {
             ),
           },
           {
-            key: 'content',
-            label: 'Content',
-            children: (
-              <Input.TextArea
-                rows={12}
-                value={JSON.stringify(node.content ?? {}, null, 2)}
-                onChange={(e) => {
-                  try {
-                    const content = JSON.parse(e.target.value);
-                    update({ content });
-                  } catch {
-                    /* ignore invalid json while typing */
-                  }
-                }}
-                style={{ fontFamily: 'monospace', fontSize: 11 }}
-              />
-            ),
+            key: 'editor',
+            label: getEditorTabLabel(node.type),
+            children: editorTab,
           },
         ]}
       />
     </div>
   );
+}
+
+function getEditorTabLabel(type: DecisionNode['type']): string {
+  switch (type) {
+    case 'decisionTableNode':
+      return 'Table';
+    case 'expressionNode':
+      return 'Expression';
+    case 'functionNode':
+      return 'Function';
+    case 'switchNode':
+      return 'Switch';
+    default:
+      return 'Content';
+  }
+}
+
+function getEditorForNode(
+  node: DecisionNode,
+  onContentChange: (content: DecisionNode['content']) => void,
+) {
+  switch (node.type) {
+    case 'decisionTableNode':
+      return (
+        <DecisionTableEditor
+          content={node.content}
+          onChange={onContentChange}
+        />
+      );
+    default:
+      return (
+        <NodeContentInspector
+          nodeType={node.type}
+          content={node.content}
+          onChange={onContentChange}
+        />
+      );
+  }
 }

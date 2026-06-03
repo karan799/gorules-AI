@@ -44,7 +44,8 @@ export function EditorPage() {
           {selectedNodeId && (
             <div
               style={{
-                height: 220,
+                height: 340,
+                minHeight: 280,
                 borderTop: '1px solid #e5e7eb',
                 background: '#fff',
                 overflow: 'auto',
