@@ -93,6 +93,39 @@ export function updateRuleCell(
   };
 }
 
+export function reorderInputColumns(
+  content: DecisionTableContent,
+  fromIndex: number,
+  toIndex: number,
+): DecisionTableContent {
+  const inputs = [...content.inputs];
+  const [item] = inputs.splice(fromIndex, 1);
+  inputs.splice(toIndex, 0, item);
+  return { ...content, inputs };
+}
+
+export function reorderOutputColumns(
+  content: DecisionTableContent,
+  fromIndex: number,
+  toIndex: number,
+): DecisionTableContent {
+  const outputs = [...content.outputs];
+  const [item] = outputs.splice(fromIndex, 1);
+  outputs.splice(toIndex, 0, item);
+  return { ...content, outputs };
+}
+
+export function reorderRules(
+  content: DecisionTableContent,
+  fromIndex: number,
+  toIndex: number,
+): DecisionTableContent {
+  const rules = [...content.rules];
+  const [item] = rules.splice(fromIndex, 1);
+  rules.splice(toIndex, 0, item);
+  return { ...content, rules };
+}
+
 export function updateRuleDescription(
   content: DecisionTableContent,
   ruleId: string,

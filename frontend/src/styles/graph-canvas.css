@@ -46,6 +46,14 @@
   stroke-width: 2.5px !important;
 }
 
+.table-rule-active td {
+  background: #ecfdf5 !important;
+}
+
+.table-rule-active:hover td {
+  background: #d1fae5 !important;
+}
+
 .graph-node .graph-node-type {
   font-size: 10px;
   color: #6b7280;

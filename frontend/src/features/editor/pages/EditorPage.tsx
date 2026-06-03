@@ -44,8 +44,11 @@ export function EditorPage() {
           {selectedNodeId && (
             <div
               style={{
-                height: 340,
-                minHeight: 280,
+                height: selectedNodeId &&
+                  graph.nodes.find((n) => n.id === selectedNodeId)?.type === 'decisionTableNode'
+                  ? 420
+                  : 360,
+                minHeight: 300,
                 borderTop: '1px solid #e5e7eb',
                 background: '#fff',
                 overflow: 'auto',

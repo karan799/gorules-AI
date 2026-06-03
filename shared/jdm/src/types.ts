@@ -21,10 +21,14 @@ export interface DecisionEdge {
   type?: string;
 }
 
+export type ColumnEvalMode = 'expression' | 'unary';
+
 export interface DecisionTableColumn {
   id: string;
   name: string;
   field: string;
+  /** expression = full Zen; unary = decision-table cell mode */
+  type?: ColumnEvalMode;
 }
 
 export interface DecisionTableContent {
